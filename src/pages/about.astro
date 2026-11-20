@@ -6,21 +6,21 @@ import CertBadge from '../components/CertBadge.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import Icon from '../components/Icon.astro';
-import { CERT, CONTACTS, PROFILE, SITE_TITLE } from '../consts';
+import { CERT, CONTACTS, PROFILE, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import { Content, frontmatter } from '../content/about.mdx';
 ---
 
 <!doctype html>
 <html lang="ko">
 	<head>
-		<BaseHead title={`소개 | ${SITE_TITLE}`} description={frontmatter.tagline} />
+		<BaseHead title={`소개 | ${SITE_TITLE}`} description={frontmatter.tagline || SITE_DESCRIPTION} />
 	</head>
 	<body>
 		<Header />
 		<main class="about container">
 			<div class="heading">
-				<h1>{frontmatter.title}</h1>
-				<p class="tagline">{frontmatter.tagline}</p>
+				<h1>{frontmatter.title || <span class="placeholder">소개 페이지 제목 (예: 안녕하세요, ○○입니다)</span>}</h1>
+				<p class="tagline">{frontmatter.tagline || <span class="placeholder">나를 표현하는 한 문장</span>}</p>
 			</div>
 
 			<aside class="profile" aria-label="프로필">
@@ -28,8 +28,8 @@ import { Content, frontmatter } from '../content/about.mdx';
 					<div class="who">
 						<span class="initial" aria-hidden="true">{PROFILE.initial}</span>
 						<span class="who-text">
-							<span class="name">{PROFILE.name}</span>
-							<span class="role">{PROFILE.role}</span>
+							<span class="name">{PROFILE.name || <span class="placeholder">이름</span>}</span>
+							<span class="role">{PROFILE.role || <span class="placeholder">한 줄 소개</span>}</span>
 						</span>
 					</div>
 					{PROFILE.summary.length > 0 && (
@@ -37,8 +37,8 @@ import { Content, frontmatter } from '../content/about.mdx';
 						{
 							PROFILE.summary.map((s) => (
 								<>
-									<dt>{s.term}</dt>
-									<dd>{s.desc}</dd>
+									<dt>{s.term || <span class="placeholder">항목 (예: 경력)</span>}</dt>
+									<dd>{s.desc || <span class="placeholder">내용</span>}</dd>
 								</>
 							))
 						}
@@ -46,7 +46,17 @@ import { Content, frontmatter } from '../content/about.mdx';
 					)}
 					<ul class="contacts" aria-label="연락처">
 						{
-							CONTACTS.map((c) => (
+							CONTACTS.map((c) => !c.href ? (
+								<li>
+									<span class="contact-empty">
+										<Icon name={c.icon} size={20} />
+										<span class="contact-text">
+											<span class="contact-label">{c.label}</span>
+											<span class="contact-value placeholder">{c.label} 주소</span>
+										</span>
+									</span>
+								</li>
+							) : (
 								<li>
 									<a href={c.href} {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
 										<Icon name={c.icon} size={20} />
@@ -222,6 +232,21 @@ import { Content, frontmatter } from '../content/about.mdx';
 		font-size: 14px;
 		color: var(--c-text-strong);
 		text-decoration: none;
+	}
+	/* 아직 주소를 넣지 않은 연락처: 링크 없이 같은 모양으로 */
+	.contact-empty {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		min-height: 44px;
+		font-size: 14px;
+		color: var(--c-text-placeholder);
+	}
+	.contact-empty .contact-label {
+		color: var(--c-text-muted);
+	}
+	.contact-empty .contact-value {
+		color: var(--c-text-placeholder);
 	}
 	.contacts a:hover .contact-label {
 		text-decoration: underline;

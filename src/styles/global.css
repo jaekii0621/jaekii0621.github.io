@@ -10,6 +10,8 @@
 	--c-text-secondary: #3a3a3c;
 	--c-text-muted: #5a5a5c;
 	--c-text-disabled: #6e6e70;
+	/* 아직 채우지 않은 칸의 안내 글자(.placeholder) */
+	--c-text-placeholder: #b3b3b3;
 	/* 선과 면 */
 	--c-border: #e5e5e5;
 	--c-divider: #ededed;
@@ -587,4 +589,10 @@ hr {
 	clip-path: inset(50%);
 	/* 줄바꿈 없이 붙여 화면 읽기 프로그램이 단어를 붙여 읽지 않게 한다 */
 	white-space: nowrap;
+}
+
+/* 아직 채우지 않은 칸의 안내 글자. 값이 빈 문자열일 때 페이지가 이 클래스로 자리 설명을 보여 준다. */
+.placeholder {
+	color: var(--c-text-placeholder);
+	font-weight: 400;
 }

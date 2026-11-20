@@ -33,9 +33,18 @@ const series = await getAllSeries(allPosts);
 		<main class="home container">
 			<section class="hero">
 				<div class="intro">
-					<p class="label">{HOME_INTRO.label}</p>
-					<h1>{HOME_INTRO.title.map((line, i) => (i === 0 ? line : <><br />{line}</>))}</h1>
-					<p class="lead">{HOME_INTRO.lead}</p>
+					<p class="label">{HOME_INTRO.label || <span class="placeholder">홈 라벨: 블로그 분야를 짧게 (예: 공부 기록 · 개발 노트)</span>}</p>
+					<h1>
+						{HOME_INTRO.title.map((line, i) => (
+							<>
+								{i > 0 && <br />}
+								{line || <span class="placeholder">홈 제목 {i + 1}번째 줄</span>}
+							</>
+						))}
+					</h1>
+					<p class="lead">
+						{HOME_INTRO.lead || <span class="placeholder">블로그 소개 두세 문장: 누가, 무엇을, 왜 기록하는지</span>}
+					</p>
 					<div class="btn-row">
 						<a class="btn btn-primary" href="/blog/">블로그 읽기</a>
 						<a class="btn btn-secondary" href="/about/">소개 더 보기</a>

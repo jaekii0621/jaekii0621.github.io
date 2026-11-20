@@ -14,7 +14,7 @@ const year = new Date().getFullYear();
 			</nav>
 			<ul class="contacts" aria-label="연락처">
 				{
-					CONTACTS.map((c) => (
+					CONTACTS.filter((c) => c.href).map((c) => (
 						<li>
 							<a href={c.href} title={c.label} {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
 								<Icon name={c.icon} size={18} />
