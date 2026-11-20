@@ -1,0 +1,142 @@
+---
+// 스크랩 목록. 카드를 누르면 원문이 새 탭에서 열린다.
+// 태그 거르기는 정적 사이트라 아래 작은 스크립트로 카드를 숨긴다. 주소의 ?tag=로 거른 상태를 공유한다.
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import LinkGrid from '../../components/LinkGrid.astro';
+import { SITE_TITLE } from '../../consts';
+
+const DESCRIPTION = '관심 있게 읽은 글과 뉴스를 요약과 함께 모았습니다. 카드를 누르면 원문이 새 탭에서 열립니다.';
+
+const links = (await getCollection('links')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// 태그별 개수. 많은 순, 같으면 이름순
+const counts = new Map<string, number>();
+for (const link of links) for (const t of link.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+const tags = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+---
+
+<!doctype html>
+<html lang="ko">
+	<head>
+		<BaseHead title={`스크랩 | ${SITE_TITLE}`} description={DESCRIPTION} />
+	</head>
+	<body>
+		<Header />
+		<main class="links-page container">
+			<div class="heading">
+				<h1>스크랩</h1>
+				<p class="lead">{DESCRIPTION}</p>
+			</div>
+
+			{
+				tags.length > 0 && (
+					<div class="tag-filter" role="group" aria-label="태그로 거르기" hidden>
+						<button type="button" class="pill-tab" data-tag="" aria-pressed="true">
+							전체 <span class="tab-count">{links.length}</span>
+						</button>
+						{tags.map(([tag, count]) => (
+							<button type="button" class="pill-tab" data-tag={tag} aria-pressed="false">
+								{tag} <span class="tab-count">{count}</span>
+							</button>
+						))}
+					</div>
+				)
+			}
+			<p class="sr-only" aria-live="polite" data-filter-status></p>
+
+			<LinkGrid links={links} headingLevel={2} />
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<script>
+	const filter = document.querySelector<HTMLElement>('.tag-filter');
+	if (filter) {
+		const buttons = [...filter.querySelectorAll<HTMLButtonElement>('button[data-tag]')];
+		const cards = [...document.querySelectorAll<HTMLElement>('.link-card')];
+		const status = document.querySelector<HTMLElement>('[data-filter-status]');
+		const known = new Set(buttons.map((b) => b.dataset.tag));
+
+		const apply = (tag: string, updateUrl: boolean) => {
+			if (!known.has(tag)) tag = '';
+			for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.tag === tag));
+			let shown = 0;
+			for (const card of cards) {
+				const match = !tag || (card.dataset.tags ?? '').split(' ').includes(tag);
+				card.hidden = !match;
+				if (match) shown++;
+			}
+			if (status) status.textContent = tag ? `${tag} 태그 스크랩 ${shown}건` : `전체 스크랩 ${shown}건`;
+			if (updateUrl) {
+				const url = new URL(location.href);
+				if (tag) url.searchParams.set('tag', tag);
+				else url.searchParams.delete('tag');
+				history.replaceState(null, '', url);
+			}
+		};
+
+		for (const b of buttons) b.addEventListener('click', () => apply(b.dataset.tag ?? '', true));
+		// 스크립트가 돌 때만 거르기를 보여 준다
+		filter.hidden = false;
+		apply(new URL(location.href).searchParams.get('tag') ?? '', false);
+	}
+</script>
+
+<style>
+	/* 1200px 틀(전역 main의 720px 폭을 덮어쓴다) */
+	.links-page {
+		display: flex;
+		flex-direction: column;
+		gap: 32px;
+		width: auto;
+		max-width: var(--container-max);
+		padding-top: 64px;
+		padding-bottom: 96px;
+	}
+	.heading {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+	h1 {
+		margin: 0;
+		font-size: 48px;
+		line-height: 1.15;
+		letter-spacing: -1px;
+	}
+	.lead {
+		margin: 0;
+		font-size: 18px;
+		line-height: 1.6;
+		color: var(--c-text-secondary);
+	}
+	.tag-filter {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.tag-filter[hidden] {
+		display: none;
+	}
+	.links-page :global(.link-card[hidden]) {
+		display: none;
+	}
+	@media (max-width: 720px) {
+		.links-page {
+			gap: 24px;
+			padding-top: 40px;
+			padding-bottom: 64px;
+		}
+		h1 {
+			font-size: 32px;
+			letter-spacing: -0.6px;
+		}
+		.lead {
+			font-size: 16px;
+		}
+	}
+</style>

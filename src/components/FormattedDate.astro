@@ -1,0 +1,12 @@
+---
+interface Props {
+	date: Date;
+	class?: string;
+}
+
+const { date, class: className } = Astro.props;
+// 2026-11-04 형식. 빌드 서버(UTC)와 관계없이 한국 날짜로 보여 준다
+const text = date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+---
+
+<time class:list={['mono', className]} datetime={date.toISOString()}>{text}</time>

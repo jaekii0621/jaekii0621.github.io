@@ -1,0 +1,102 @@
+---
+// 글 왼쪽 카테고리 목록: 들여쓴 두 단계 목록, 항상 펼침. 현재 글의 카테고리를 강조한다.
+import { getCollection } from 'astro:content';
+import { buildCategoryTree, type CategoryNode, categoryUrl } from '../../lib/categories';
+
+interface Props {
+	// 현재 글의 카테고리 경로
+	current: string;
+	// 시리즈가 아닌 글은 맨 위에 "전체 글"을 붙인다
+	showAll?: boolean;
+}
+
+const { current, showAll = false } = Astro.props;
+const posts = await getCollection('blog');
+const tree = buildCategoryTree(posts);
+const rows: { node: CategoryNode; depth: number }[] = tree.flatMap((n) => [
+	{ node: n, depth: 0 },
+	...n.children.map((c) => ({ node: c, depth: 1 })),
+]);
+---
+
+<nav class="category-list" aria-label="카테고리">
+	<p class="eyebrow">카테고리</p>
+	<ul>
+		{
+			showAll && (
+				<li>
+					<a href="/blog/" class="top">
+						전체 글<span class="count mono">{posts.length}</span>
+					</a>
+				</li>
+			)
+		}
+		{
+			rows.map(({ node, depth }) => {
+				const isCurrent = node.path === current;
+				return (
+					<li>
+						<a
+							href={categoryUrl(node.path)}
+							class:list={[depth === 0 ? 'top' : 'sub', { current: isCurrent }]}
+							aria-current={isCurrent ? 'true' : undefined}
+						>
+							{node.name}
+							<span class="count mono">{node.count}</span>
+						</a>
+					</li>
+				);
+			})
+		}
+	</ul>
+</nav>
+
+<style>
+	.eyebrow {
+		margin: 0 0 8px;
+		padding: 0 12px;
+		line-height: 1.5;
+	}
+	ul {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	a {
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+		border-radius: 6px;
+		font-size: 14px;
+		line-height: 1.45;
+		color: var(--c-text-secondary);
+		text-decoration: none;
+	}
+	a:hover {
+		background: var(--c-surface);
+		color: var(--c-text-strong);
+	}
+	.top {
+		padding: 8px 12px;
+		font-weight: 500;
+	}
+	.sub {
+		padding: 6px 12px 6px 28px;
+	}
+	a.current {
+		background: var(--c-surface);
+		color: var(--c-text-strong);
+		font-weight: 600;
+	}
+	.count {
+		font-size: 13px;
+		font-weight: 400;
+		color: var(--c-text-muted);
+	}
+	.current .count {
+		color: var(--c-text-strong);
+	}
+</style>

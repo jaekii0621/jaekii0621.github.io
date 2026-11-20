@@ -1,0 +1,133 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+import { postUrl } from '../lib/series';
+
+const recent = (await getCollection('blog'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || b.id.localeCompare(a.id))
+	.slice(0, 3);
+---
+
+<!doctype html>
+<html lang="ko">
+	<head>
+		<BaseHead title={`페이지를 찾을 수 없습니다 | ${SITE_TITLE}`} description="주소가 바뀌었거나 지워진 페이지입니다." />
+		<meta name="robots" content="noindex" />
+	</head>
+	<body>
+		<Header />
+		<main class="not-found">
+			<p class="code mono" aria-hidden="true">404</p>
+			<h1>페이지를 찾을 수 없습니다</h1>
+			<p class="lead">주소가 바뀌었거나 지워진 페이지입니다. 주소를 다시 확인하거나 아래에서 글을 찾아보세요.</p>
+			<div class="btn-row">
+				<a class="btn btn-primary" href="/">홈으로</a>
+				<a class="btn btn-secondary" href="/blog/">블로그 글 보기</a>
+			</div>
+			<section class="recent" aria-labelledby="recent-label">
+				<h2 id="recent-label" class="eyebrow">최근 글</h2>
+				<ul>
+					{
+						recent.map((post) => (
+							<li>
+								<a href={postUrl(post)}>
+									<FormattedDate class="date" date={post.data.pubDate} />
+									<span class="title">{post.data.title}</span>
+									<span class="chip">{post.data.category}</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.not-found {
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+		padding-top: 96px;
+		padding-bottom: 120px;
+	}
+	.code {
+		margin: 0;
+		font-size: 88px;
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: -2px;
+		color: var(--c-border);
+	}
+	h1 {
+		margin: 0;
+		font-size: 44px;
+	}
+	.lead {
+		margin: 0;
+		color: var(--c-text-secondary);
+	}
+	.recent {
+		margin-top: 24px;
+	}
+	.recent .eyebrow {
+		padding-bottom: 10px;
+		margin-bottom: 4px;
+		border-bottom: 1px solid var(--c-border);
+		line-height: 1.5;
+		letter-spacing: 0.5px;
+	}
+	.recent ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.recent li + li {
+		border-top: 1px solid var(--c-divider);
+	}
+	.recent a {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 4px 16px;
+		padding: 14px 0;
+		color: var(--c-text-strong);
+		text-decoration: none;
+	}
+	.recent a:hover .title {
+		text-decoration: underline;
+		text-decoration-color: var(--c-accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+	.recent :global(.date) {
+		flex: 0 0 auto;
+		font-size: 13px;
+		color: var(--c-text-muted);
+	}
+	.title {
+		flex: 1 1 260px;
+		min-width: 0;
+		font-size: 15px;
+		font-weight: 500;
+		line-height: 1.5;
+	}
+	@media (max-width: 720px) {
+		.not-found {
+			padding-top: 56px;
+			padding-bottom: 64px;
+		}
+		.code {
+			font-size: 56px;
+		}
+		h1 {
+			font-size: 30px;
+		}
+	}
+</style>

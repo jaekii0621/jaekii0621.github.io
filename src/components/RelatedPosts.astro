@@ -1,0 +1,104 @@
+---
+// 같은 카테고리의 글. 지금 글과 이전·다음 카드로 이미 나온 글은 빼고, 남는 글이 없으면 그리지 않는다.
+import { getCollection } from 'astro:content';
+import { categoryUrl, splitCategory } from '../lib/categories';
+import { postUrl } from '../lib/series';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	category: string;
+	// 목록에서 뺄 글 id(지금 글, 이전·다음 글)
+	exclude?: string[];
+}
+
+const { category, exclude = [] } = Astro.props;
+const posts = (await getCollection('blog', (p) => p.data.category === category && !exclude.includes(p.id))).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || b.id.localeCompare(a.id),
+);
+const href = categoryUrl(category);
+---
+
+{
+	posts.length > 0 && (
+		<aside class="related" aria-labelledby="related-heading">
+			<p id="related-heading" class="heading">
+				같은 카테고리의 글 · <a href={href}>{splitCategory(category).join(' › ')}</a>
+			</p>
+			<ul>
+				{posts.map((post) => (
+					<li>
+						<a href={postUrl(post)}>{post.data.title}</a>
+						<FormattedDate class="date" date={post.data.pubDate} />
+					</li>
+				))}
+			</ul>
+			<a class="all" href={href}>
+				이 카테고리 글 모두 보기 →
+			</a>
+		</aside>
+	)
+}
+
+<style>
+	.related {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 20px 24px;
+		border: 1px solid var(--c-divider);
+		border-radius: 12px;
+		background: var(--c-surface-2);
+	}
+	.heading {
+		margin: 0 0 4px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--c-text-strong);
+	}
+	.heading a {
+		color: var(--c-text-muted);
+		font-weight: 500;
+	}
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	li {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 4px 16px;
+		padding: 10px 0;
+		border-bottom: 1px solid var(--c-divider);
+		font-size: 15px;
+		line-height: 1.5;
+	}
+	li a {
+		color: var(--c-text-strong);
+		text-decoration: none;
+	}
+	li a:hover {
+		text-decoration: underline;
+		text-decoration-color: var(--c-accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+	li :global(.date) {
+		flex-shrink: 0;
+		font-size: 12px;
+		color: var(--c-text-muted);
+	}
+	.all {
+		align-self: flex-start;
+		margin-top: 8px;
+		padding: 6px 0;
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--c-text-strong);
+		text-decoration-color: var(--c-accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+</style>

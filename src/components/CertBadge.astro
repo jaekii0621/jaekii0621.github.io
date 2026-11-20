@@ -1,0 +1,71 @@
+---
+// 소개 페이지 프로필 칸의 자격증 카드. 누르면 검증 페이지가 새 탭에서 열린다.
+// 값은 src/consts.ts의 CERT에서 받는다.
+import type { Cert } from '../consts';
+import Icon from './Icon.astro';
+
+interface Props {
+	cert: Cert;
+}
+
+const { cert: CERT } = Astro.props;
+---
+
+<a class="cert" href={CERT.verify} target="_blank" rel="noopener noreferrer">
+	<img src={CERT.badge} alt={`${CERT.name} 배지`} width="72" height="72" loading="lazy" />
+	<span class="text">
+		<span class="eyebrow">자격증</span>
+		<span class="name">{CERT.name}</span>
+		<span class="verify">
+			검증 페이지 보기<Icon name="arrow-up-right" size={12} />
+			<span class="sr-only">(새 탭에서 열림)</span>
+		</span>
+	</span>
+</a>
+
+<style>
+	.cert {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		padding: 20px;
+		border: 1px solid var(--c-border);
+		border-radius: 12px;
+		color: var(--c-text-strong);
+		text-decoration: none;
+	}
+	.cert:hover {
+		border-color: var(--c-text-disabled);
+	}
+	.cert:hover .verify {
+		text-decoration: underline;
+		text-decoration-color: var(--c-accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+	img {
+		flex: 0 0 72px;
+		width: 72px;
+		height: 72px;
+		object-fit: contain;
+		border-radius: 0;
+	}
+	.text {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		min-width: 0;
+	}
+	.name {
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 1.4;
+	}
+	.verify {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		font-size: 13px;
+		color: var(--c-text-secondary);
+	}
+</style>

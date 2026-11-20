@@ -1,0 +1,110 @@
+---
+// 시리즈 편 목록: 번호 + 편 제목. 현재 편 강조, 발행 전 편은 회색 글자(링크 아님).
+import type { SeriesInfo } from '../../lib/series';
+import { postUrl } from '../../lib/series';
+
+interface Props {
+	series: SeriesInfo;
+	current: number;
+	// side: PC 왼쪽 칸(라벨 포함), compact: 휴대폰 접힌 메뉴 안(라벨 없음, 큰 글자)
+	variant?: 'side' | 'compact';
+}
+
+const { series, current, variant = 'side' } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<nav class:list={['series-nav', variant]} aria-label={`${series.title} 시리즈`}>
+	{variant === 'side' && <p class="eyebrow">{series.title} 시리즈</p>}
+	<ol>
+		{
+			series.parts.map((part) => {
+				const isCurrent = part.order === current;
+				const label = (
+					<>
+						<span class="num mono">{pad(part.order)}</span>
+						<span>{part.title}</span>
+					</>
+				);
+				return (
+					<li>
+						{part.post ? (
+							<a
+								href={postUrl(part.post)}
+								class:list={{ current: isCurrent }}
+								aria-current={isCurrent ? 'page' : undefined}
+							>
+								{label}
+							</a>
+						) : (
+							<span class="upcoming">
+								{label}
+								<span class="sr-only">(준비 중)</span>
+							</span>
+						)}
+					</li>
+				);
+			})
+		}
+	</ol>
+</nav>
+
+<style>
+	.eyebrow {
+		margin: 0 0 8px;
+		padding: 0 12px;
+		line-height: 1.5;
+	}
+	ol {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	a,
+	.upcoming {
+		display: flex;
+		gap: 10px;
+		padding: 8px 12px;
+		border-radius: 6px;
+		font-size: 14px;
+		line-height: 1.45;
+		text-decoration: none;
+	}
+	a {
+		color: var(--c-text-secondary);
+	}
+	a:hover {
+		background: var(--c-surface);
+		color: var(--c-text-strong);
+	}
+	a.current {
+		background: var(--c-surface);
+		color: var(--c-text-strong);
+		font-weight: 500;
+	}
+	.upcoming {
+		color: var(--c-text-disabled);
+	}
+	.num {
+		flex-shrink: 0;
+		font-size: 13px;
+		color: var(--c-text-muted);
+	}
+	.current .num {
+		color: var(--c-text-strong);
+	}
+	.upcoming .num {
+		color: inherit;
+	}
+	.compact ol {
+		padding: 0 8px 8px;
+	}
+	.compact a,
+	.compact .upcoming {
+		padding: 10px 8px;
+		font-size: 15px;
+	}
+</style>

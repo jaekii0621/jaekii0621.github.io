@@ -1,0 +1,49 @@
+---
+// 홈 섹션 머리: 제목 + 오른쪽 "전체 … 보기 →" 링크
+interface Props {
+	title: string;
+	// 전체 목록 페이지 주소
+	href?: string;
+	linkLabel?: string;
+}
+
+const { title, href, linkLabel = '전체 보기' } = Astro.props;
+---
+
+<div class="section-header">
+	<h2>{title}</h2>
+	{href && <a href={href}>{linkLabel} →</a>}
+</div>
+
+<style>
+	.section-header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 8px 16px;
+	}
+	h2 {
+		margin: 0;
+		font-size: 28px;
+		letter-spacing: -0.5px;
+	}
+	a {
+		flex-shrink: 0;
+		padding: 10px 0;
+		color: var(--c-text-strong);
+		font-size: 14px;
+		font-weight: 500;
+		text-decoration-color: var(--c-accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+	a:hover {
+		text-decoration-color: var(--c-text-strong);
+	}
+	@media (max-width: 720px) {
+		h2 {
+			font-size: 24px;
+		}
+	}
+</style>

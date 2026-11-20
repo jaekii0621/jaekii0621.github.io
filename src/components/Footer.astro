@@ -1,0 +1,101 @@
+---
+import { CONTACTS, FOOTER_LINKS, SITE_TITLE } from '../consts';
+import Icon from './Icon.astro';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+	<div class="inner container">
+		<span>&copy; {year} {SITE_TITLE}</span>
+		<div class="links">
+			<nav aria-label="하단 메뉴">
+				{FOOTER_LINKS.map((l) => <a href={l.href}>{l.label}</a>)}
+			</nav>
+			<ul class="contacts" aria-label="연락처">
+				{
+					CONTACTS.map((c) => (
+						<li>
+							<a href={c.href} title={c.label} {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+								<Icon name={c.icon} size={18} />
+								<span class="sr-only">
+									{c.label}
+									{c.external && ' (새 탭에서 열림)'}
+								</span>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</div>
+</footer>
+
+<style>
+	.site-footer {
+		border-top: 1px solid var(--c-border);
+	}
+	.inner {
+		padding-top: 40px;
+		padding-bottom: 40px;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		font-size: 14px;
+		color: var(--c-text-muted);
+	}
+	.links {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 12px 24px;
+	}
+	nav {
+		display: flex;
+		gap: 20px;
+	}
+	a {
+		color: var(--c-text-muted);
+		text-decoration: none;
+	}
+	a:hover {
+		color: var(--c-text-strong);
+	}
+	nav a {
+		padding: 10px 0;
+	}
+	.contacts {
+		display: flex;
+		gap: 4px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.contacts a {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		border-radius: 8px;
+	}
+	.contacts a:hover {
+		background: var(--c-surface);
+	}
+
+	/* 휴대폰: 링크 줄(메뉴 + 연락처)을 위, 저작권을 아래로 쌓는다 */
+	@media (max-width: 720px) {
+		.inner {
+			flex-direction: column-reverse;
+			align-items: flex-start;
+			gap: 12px;
+			padding-top: 28px;
+			padding-bottom: 36px;
+		}
+		.contacts {
+			margin-left: -10px;
+		}
+	}
+</style>

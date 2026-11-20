@@ -1,0 +1,17 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import CardGrid from './CardGrid.astro';
+import LinkCard from './LinkCard.astro';
+
+interface Props {
+	links: CollectionEntry<'links'>[];
+	showTags?: boolean;
+	headingLevel?: 2 | 3;
+}
+
+const { links, showTags = true, headingLevel } = Astro.props;
+---
+
+<CardGrid>
+	{links.map((link) => <LinkCard link={link} showTags={showTags} headingLevel={headingLevel} />)}
+</CardGrid>

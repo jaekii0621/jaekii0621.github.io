@@ -1,0 +1,14 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'a'> & { match: string };
+
+const { href, match, class: className, ...props } = Astro.props;
+// 끝의 /를 맞춰 비교한다. 홈('/')은 정확히 같을 때만 현재 항목이다.
+const pathname = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const isActive = match === '/' ? pathname === '/' : pathname.startsWith(match);
+---
+
+<a href={href} class:list={[className, { active: isActive }]} aria-current={isActive ? 'page' : undefined} {...props}>
+	<slot />
+</a>

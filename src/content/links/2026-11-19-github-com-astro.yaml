@@ -1,0 +1,7 @@
+url: "https://github.com/withastro/astro"
+title: "withastro/astro: The web framework for content-driven websites"
+source: "GitHub"
+summary: "콘텐츠 중심 웹사이트용 프레임워크 Astro의 저장소. 기본은 정적 HTML이고 필요한 컴포넌트만 클라이언트에서 실행한다."
+comment: "(샘플) 이 블로그를 만든 프레임워크. 첫 스크랩을 추가한 뒤 지운다."
+tags: ["web"]
+date: 2026-11-19T09:00:00+09:00

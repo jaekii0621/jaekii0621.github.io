@@ -1,0 +1,18 @@
+---
+import { getCollection } from 'astro:content';
+import BlogListPage from '../../../layouts/BlogListPage.astro';
+import { buildCategoryTree, flattenCategories } from '../../../lib/categories';
+
+// 카테고리 주소는 이전과 같다: /blog/category/AI/, /blog/category/AI/딥러닝/
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	return flattenCategories(buildCategoryTree(posts)).map((node) => ({
+		params: { path: node.path },
+		props: { category: node.path, allPosts: posts },
+	}));
+}
+
+const { category, allPosts } = Astro.props;
+---
+
+<BlogListPage allPosts={allPosts} category={category} />

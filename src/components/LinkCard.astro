@@ -1,0 +1,161 @@
+---
+// 스크랩 카드. 누르면 원문이 새 탭에서 열린다. 썸네일이 없으면 도메인을 보여 준다.
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+	link: CollectionEntry<'links'>;
+	// 홈에서는 태그를 빼고 보여 준다
+	showTags?: boolean;
+	// 제목 단계. 홈은 절 제목(h2) 아래라 h3, 스크랩 페이지는 h1 바로 아래라 h2
+	headingLevel?: 2 | 3;
+}
+
+const { link, showTags = true, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const { url, title, source, image, summary, comment, tags, date } = link.data;
+const host = new URL(url).hostname.replace(/^www\./, '');
+---
+
+<li class="link-card" data-tags={tags.join(' ')}>
+	<a href={url} target="_blank" rel="noopener noreferrer">
+		<div class="thumb">
+			{image ? <Image src={image} width={400} densities={[1, 2]} alt="" /> : <span class="host mono">{host}</span>}
+		</div>
+		<div class="body">
+			<p class="meta">
+				<span class="source">{source ?? host}</span>
+				<span aria-hidden="true">·</span>
+				<FormattedDate date={date} />
+				<Icon name="arrow-up-right" size={14} class="ext" />
+				<span class="sr-only">(새 탭에서 열림)</span>
+			</p>
+			<Heading class="title">{title}</Heading>
+			<p class="summary">{summary}</p>
+			{comment && <p class="comment">{comment}</p>}
+			{
+				showTags && tags.length > 0 && (
+					<ul class="tags" aria-label="태그">
+						{tags.map((t) => (
+							<li class="mono">{t}</li>
+						))}
+					</ul>
+				)
+			}
+		</div>
+	</a>
+</li>
+
+<style>
+	.link-card {
+		display: flex;
+	}
+	a {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		overflow: hidden;
+		border: 1px solid var(--c-border);
+		border-radius: 12px;
+		background: var(--c-bg);
+		color: var(--c-text-strong);
+		text-decoration: none;
+	}
+	a:hover {
+		border-color: var(--c-text-disabled);
+	}
+	a:hover .title {
+		text-decoration: underline;
+		text-decoration-color: var(--c-accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+	.thumb {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		aspect-ratio: 1.91 / 1;
+		border-bottom: 1px solid var(--c-divider);
+		background: var(--c-surface);
+	}
+	.thumb :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 0;
+	}
+	.host {
+		padding: 0 16px;
+		font-size: 13px;
+		color: var(--c-text-muted);
+		text-align: center;
+		word-break: break-all;
+	}
+	.body {
+		display: flex;
+		flex-direction: column;
+		flex-grow: 1;
+		gap: 10px;
+		padding: 20px 24px 24px;
+	}
+	.body p {
+		margin: 0;
+	}
+	.meta {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 12px;
+		color: var(--c-text-muted);
+	}
+	.source {
+		font-weight: 500;
+	}
+	.meta :global(.ext) {
+		margin-left: auto;
+		flex-shrink: 0;
+	}
+	.title {
+		margin: 0;
+		font-size: 16px;
+		line-height: 1.45;
+		letter-spacing: 0;
+	}
+	.summary {
+		font-size: 14px;
+		line-height: 1.6;
+		color: var(--c-text-muted);
+	}
+	.body .comment {
+		margin-top: auto;
+		padding: 12px 14px;
+		border-radius: 8px;
+		background: var(--c-surface);
+		font-size: 13px;
+		line-height: 1.6;
+		color: var(--c-text-secondary);
+	}
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.tags li {
+		padding: 1px 10px;
+		border: 1px solid var(--c-border);
+		border-radius: 9999px;
+		font-size: 12px;
+		color: var(--c-text-muted);
+	}
+	@media (max-width: 720px) {
+		.body {
+			padding: 18px 20px 20px;
+		}
+	}
+</style>

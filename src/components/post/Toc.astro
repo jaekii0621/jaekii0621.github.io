@@ -1,0 +1,77 @@
+---
+// 이 글의 목차: 본문 h2·h3로 만든다. 현재 절 표시는 레이아웃의 스크립트가 맡는다(data-toc-link).
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+	headings: MarkdownHeading[];
+	// side: PC 오른쪽 칸(라벨 포함), compact: 접힌 메뉴 안(라벨 없음, 큰 글자)
+	variant?: 'side' | 'compact';
+}
+
+const { headings, variant = 'side' } = Astro.props;
+---
+
+<nav class:list={['toc', variant]} aria-label="이 글의 목차">
+	{variant === 'side' && <p class="eyebrow">이 글의 목차</p>}
+	<ol>
+		{
+			headings.map((h) => (
+				<li>
+					<a href={`#${h.slug}`} class:list={[`depth-${h.depth}`]} data-toc-link={h.slug}>
+						{h.text}
+					</a>
+				</li>
+			))
+		}
+	</ol>
+</nav>
+
+<style>
+	.eyebrow {
+		margin: 0 0 8px;
+		line-height: 1.5;
+	}
+	ol {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	a {
+		display: block;
+		padding: 4px 0 4px 12px;
+		border-left: 2px solid var(--c-divider);
+		font-size: 13px;
+		line-height: 1.5;
+		color: var(--c-text-muted);
+		text-decoration: none;
+	}
+	a.depth-3 {
+		padding-left: 24px;
+		font-size: 12px;
+	}
+	a:hover {
+		color: var(--c-text-strong);
+	}
+	a.active {
+		border-left-color: var(--c-accent);
+		color: var(--c-text-strong);
+		font-weight: 500;
+	}
+	.compact ol {
+		gap: 0;
+		padding: 0 16px 12px;
+	}
+	.compact a {
+		padding: 10px 0 10px 12px;
+		font-size: 15px;
+		line-height: 1.45;
+		color: var(--c-text-secondary);
+	}
+	.compact a.depth-3 {
+		padding-left: 24px;
+		font-size: 14px;
+	}
+</style>

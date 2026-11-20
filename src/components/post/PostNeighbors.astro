@@ -1,0 +1,90 @@
+---
+// 이전·다음 글 카드. 없는 쪽은 점선 카드에 안내를 쓴다.
+import type { Neighbor, Neighbors } from '../../lib/series';
+import { postUrl } from '../../lib/series';
+
+interface Props {
+	neighbors: Neighbors;
+	// 시리즈 글인지(빈 카드 문구가 달라진다)
+	inSeries: boolean;
+}
+
+const { neighbors, inSeries } = Astro.props;
+
+const emptyText = (side: 'prev' | 'next') =>
+	inSeries
+		? side === 'prev'
+			? '시리즈의 첫 글입니다'
+			: '시리즈의 마지막 글입니다'
+		: side === 'prev'
+			? '이 카테고리의 첫 글입니다'
+			: '이 카테고리의 마지막 글입니다';
+
+const sides: { side: 'prev' | 'next'; label: string; n: Neighbor }[] = [
+	{ side: 'prev', label: '← 이전 글', n: neighbors.prev },
+	{ side: 'next', label: '다음 글 →', n: neighbors.next },
+];
+---
+
+<nav class="neighbors" aria-label="이전·다음 글">
+	{
+		sides.map(({ side, label, n }) =>
+			n.kind === 'post' ? (
+				<a class:list={['card', side]} href={postUrl(n.post)} rel={side}>
+					<span class="label">{label}</span>
+					<span class="title">{n.post.data.title}</span>
+				</a>
+			) : (
+				<div class:list={['card', 'empty', side]}>
+					<span class="label">{label.replace(/[←→]/g, '').trim()}</span>
+					<span class="title">{n.kind === 'upcoming' ? `${n.order}편 ${n.title} (준비 중)` : emptyText(side)}</span>
+				</div>
+			),
+		)
+	}
+</nav>
+
+<style>
+	.neighbors {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 16px;
+	}
+	.card {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		padding: 20px 24px;
+		border: 1px solid var(--c-border);
+		border-radius: 12px;
+		color: var(--c-text-strong);
+		text-decoration: none;
+	}
+	a.card:hover {
+		border-color: var(--c-text-disabled);
+	}
+	a.card:hover .title {
+		text-decoration: underline;
+		text-decoration-color: var(--c-accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+	.next {
+		text-align: right;
+	}
+	.empty {
+		border-style: dashed;
+	}
+	.label {
+		font-size: 13px;
+		color: var(--c-text-muted);
+	}
+	.title {
+		font-size: 16px;
+		font-weight: 600;
+		line-height: 1.45;
+	}
+	.empty .title {
+		color: var(--c-text-disabled);
+	}
+</style>

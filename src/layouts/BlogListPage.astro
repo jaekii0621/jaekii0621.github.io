@@ -1,0 +1,452 @@
+---
+// 블로그 목록(/blog/)과 카테고리 페이지(/blog/category/…/)가 함께 쓰는 화면.
+// 두 화면은 탭 선택 상태와 제목 영역만 다르다.
+import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+import { buildCategoryTree, categoryUrl, isWithin, splitCategory } from '../lib/categories';
+import { getAllSeries, postUrl, seriesEntryUrl } from '../lib/series';
+
+type Post = CollectionEntry<'blog'>;
+
+interface Props {
+	// 전체 글. 탭 개수와 시리즈 칸을 이 목록으로 센다
+	allPosts: Post[];
+	// 고른 카테고리 경로('AI/딥러닝'). 비우면 전체
+	category?: string;
+}
+
+const BLOG_DESCRIPTION = 'AI와 Python을 공부하며 직접 실행한 코드와 결과를 정리합니다.';
+
+const { allPosts, category = '' } = Astro.props;
+const segments = splitCategory(category);
+const isAll = segments.length === 0;
+
+const posts = allPosts
+	.filter((p) => isAll || isWithin(p.data.category, category))
+	// 최신순. 같은 날 발행한 시리즈 글은 뒤 편이 먼저 온다
+	.sort(
+		(a, b) =>
+			b.data.pubDate.valueOf() - a.data.pubDate.valueOf() ||
+			(b.data.seriesOrder ?? 0) - (a.data.seriesOrder ?? 0) ||
+			a.id.localeCompare(b.id),
+	);
+
+// 탭: 윗줄은 전체 + 상위 카테고리, 아랫줄은 고른 상위 카테고리의 전체 + 하위 카테고리
+const tree = buildCategoryTree(allPosts);
+const top = tree.find((n) => n.name === segments[0]);
+const tabs1 = [
+	{ label: '전체', href: '/blog/', count: allPosts.length, current: isAll },
+	...tree.map((n) => ({ label: n.name, href: categoryUrl(n.path), count: n.count, current: n === top })),
+];
+const tabs2 =
+	top && top.children.length > 0
+		? [
+				{ label: `${top.name} 전체`, href: categoryUrl(top.path), count: top.count, current: category === top.path },
+				...top.children.map((n) => ({
+					label: n.name,
+					href: categoryUrl(n.path),
+					count: n.count,
+					current: isWithin(category, n.path),
+				})),
+			]
+		: [];
+
+const crumbs = [
+	{ label: '블로그', href: '/blog/' },
+	...segments.map((name, i) => ({ label: name, href: categoryUrl(segments.slice(0, i + 1).join('/')) })),
+];
+
+// 시리즈: 글 행의 "MLP 이해 · 2편" 표시와 오른쪽 칸. 카테고리 페이지에서는 그 카테고리 글이 있는 시리즈만
+const allSeries = await getAllSeries(allPosts);
+const seriesTitle = new Map(allSeries.map((s) => [s.id, s.title]));
+const seriesLabel = (p: Post) =>
+	p.data.series ? `${seriesTitle.get(p.data.series.id) ?? p.data.series.id} · ${p.data.seriesOrder}편` : undefined;
+const shownSeries = allSeries.filter((s) => s.parts.some((part) => part.post && posts.includes(part.post)));
+
+const title = isAll ? '블로그' : segments.join(' › ');
+const pageTitle = isAll ? `블로그 | ${SITE_TITLE}` : `${title} | ${SITE_TITLE}`;
+const pageDescription = isAll ? BLOG_DESCRIPTION : `${title} 카테고리의 글 ${posts.length}편`;
+---
+
+<!doctype html>
+<html lang="ko">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+	</head>
+	<body>
+		<Header />
+		<main class="blog-list container">
+			<div class="list-col">
+				<div class="heading">
+					{
+						!isAll && (
+							<nav class="crumbs" aria-label="경로">
+								<ol>
+									{crumbs.map((c, i) => (
+										<li>
+											{i > 0 && <span aria-hidden="true">›</span>}
+											<a href={c.href} aria-current={i === crumbs.length - 1 ? 'page' : undefined}>
+												{c.label}
+											</a>
+										</li>
+									))}
+								</ol>
+							</nav>
+						)
+					}
+					<h1>
+						{title} <span class="count mono">{posts.length}편</span>
+					</h1>
+					{isAll && <p class="lead">{BLOG_DESCRIPTION}</p>}
+				</div>
+
+				<div class="tabs">
+					<nav class="tabs1" aria-label="상위 카테고리">
+						{
+							tabs1.map((t) => (
+								<a class="pill-tab" href={t.href} aria-current={t.current ? 'page' : undefined}>
+									{t.label} <span class="tab-count">{t.count}</span>
+								</a>
+							))
+						}
+					</nav>
+					{
+						tabs2.length > 0 && (
+							<nav class="tabs2" aria-label="하위 카테고리">
+								{tabs2.map((t) => (
+									<a href={t.href} aria-current={t.current ? 'page' : undefined}>
+										{t.label} <span class="tab-count">{t.count}</span>
+									</a>
+								))}
+							</nav>
+						)
+					}
+				</div>
+
+				<ul class="post-list">
+					{
+						posts.map((post) => {
+							const series = seriesLabel(post);
+							return (
+								<li>
+									<a href={postUrl(post)}>
+										<FormattedDate class="date" date={post.data.pubDate} />
+										<div class="body">
+											<div class="meta">
+												<span class="chip">{post.data.category}</span>
+												{series && <span class="series">{series}</span>}
+												<FormattedDate class="date-inline" date={post.data.pubDate} />
+											</div>
+											<h2>{post.data.title}</h2>
+											<p class="summary">{post.data.description}</p>
+										</div>
+									</a>
+								</li>
+							);
+						})
+					}
+				</ul>
+			</div>
+
+			{
+				shownSeries.length > 0 && (
+					<aside class="series-col" aria-labelledby="series-col-label">
+						<div class="series-box">
+							<h2 id="series-col-label" class="eyebrow">
+								시리즈
+							</h2>
+							<ul>
+								{shownSeries.map((s) => (
+									<li>
+										<a href={seriesEntryUrl(s)}>
+											<span class="series-name">{s.title}</span>
+											<span class="series-count mono" aria-label={`${s.total}편 중 ${s.published}편 발행`}>
+												{s.published}/{s.total}
+											</span>
+										</a>
+									</li>
+								))}
+							</ul>
+						</div>
+					</aside>
+				)
+			}
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	/* 1200px 틀(전역 main의 720px 폭을 덮어쓴다). 좁아지면 시리즈 칸이 목록 아래로 내려간다 */
+	.blog-list {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: 48px;
+		width: auto;
+		max-width: var(--container-max);
+		padding-top: 64px;
+		padding-bottom: 96px;
+	}
+	.list-col {
+		flex: 999 1 560px;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 28px;
+	}
+	.series-col {
+		flex: 1 1 300px;
+		min-width: 0;
+	}
+
+	/* ---------- 제목 영역 ---------- */
+	.heading {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+	.crumbs ol {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 4px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 14px;
+		color: var(--c-text-muted);
+	}
+	.crumbs li {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+	}
+	.crumbs span {
+		padding: 0 2px;
+	}
+	.crumbs a {
+		padding: 2px 4px;
+		color: var(--c-text-muted);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.crumbs a:hover {
+		color: var(--c-text-strong);
+	}
+	.crumbs a[aria-current='page'] {
+		color: var(--c-text-secondary);
+		text-decoration: none;
+	}
+	h1 {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 4px 14px;
+		margin: 0;
+		font-size: 48px;
+		line-height: 1.15;
+		letter-spacing: -1px;
+	}
+	h1 .count {
+		font-size: 16px;
+		font-weight: 500;
+		letter-spacing: 0;
+		color: var(--c-text-muted);
+	}
+	.lead {
+		margin: 0;
+		font-size: 18px;
+		line-height: 1.6;
+		color: var(--c-text-secondary);
+	}
+
+	/* ---------- 두 줄 탭 ---------- */
+	.tabs {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.tabs1,
+	.tabs2 {
+		display: flex;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.tabs1 {
+		gap: 8px;
+		/* 포커스 표시가 잘리지 않도록 안쪽 여백 */
+		padding: 4px;
+		margin: -4px;
+	}
+	/* 2단계: 밑줄 탭. 선택은 600 + 검은 밑줄 2px */
+	.tabs2 {
+		border-bottom: 1px solid var(--c-divider);
+	}
+	.tabs2 a {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		flex: 0 0 auto;
+		min-height: 44px;
+		font-size: 14px;
+		font-weight: 500;
+		white-space: nowrap;
+		text-decoration: none;
+		padding: 0 4px;
+		margin-right: 16px;
+		color: var(--c-text-muted);
+	}
+	/* 가로 스크롤 영역이라 바깥 포커스 표시가 잘린다. 안쪽에 그린다 */
+	.tabs2 a:focus-visible {
+		outline-offset: -2px;
+	}
+	.tabs2 a:hover {
+		color: var(--c-text-strong);
+	}
+	.tabs2 a[aria-current='page'] {
+		color: var(--c-text-strong);
+		font-weight: 600;
+		box-shadow: inset 0 -2px 0 var(--c-text-strong);
+	}
+
+	/* ---------- 글 목록 행 ---------- */
+	.post-list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid var(--c-border);
+	}
+	.post-list a {
+		display: flex;
+		gap: 8px 24px;
+		padding: 24px 0;
+		border-bottom: 1px solid var(--c-divider);
+		color: var(--c-text-strong);
+		text-decoration: none;
+	}
+	.post-list a:hover h2 {
+		text-decoration: underline;
+		text-decoration-color: var(--c-accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 4px;
+	}
+	.post-list :global(.date) {
+		flex: 0 0 96px;
+		padding-top: 3px;
+		font-size: 13px;
+		color: var(--c-text-muted);
+	}
+	.body {
+		flex: 1 1 auto;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 4px 8px;
+		font-size: 12px;
+		color: var(--c-text-muted);
+	}
+	.meta :global(.date-inline) {
+		display: none;
+	}
+	.post-list h2 {
+		margin: 0;
+		font-size: 18px;
+		font-weight: 600;
+		line-height: 1.45;
+		letter-spacing: 0;
+	}
+	.summary {
+		margin: 0;
+		font-size: 14px;
+		line-height: 1.65;
+		color: var(--c-text-muted);
+	}
+
+	/* ---------- 시리즈 칸 ---------- */
+	.series-box {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		padding: 24px;
+		border: 1px solid var(--c-border);
+		border-radius: 12px;
+	}
+	.series-box ul {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.series-box a {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 12px;
+		min-height: 36px;
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--c-text-strong);
+		text-decoration: none;
+	}
+	.series-box a:hover .series-name {
+		text-decoration: underline;
+		text-decoration-color: var(--c-accent);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+	.series-count {
+		font-size: 13px;
+		font-weight: 400;
+		color: var(--c-text-muted);
+	}
+
+	/* ---------- 휴대폰 ---------- */
+	@media (max-width: 720px) {
+		.blog-list {
+			gap: 40px;
+			padding-top: 40px;
+			padding-bottom: 64px;
+		}
+		.list-col {
+			gap: 24px;
+		}
+		h1 {
+			font-size: 32px;
+			letter-spacing: -0.6px;
+		}
+		.lead {
+			font-size: 16px;
+		}
+		/* 메타를 "꼬리표 · 시리즈 · 날짜" 한 줄로 모은다 */
+		.post-list a {
+			padding: 20px 0;
+		}
+		.post-list :global(.date) {
+			display: none;
+		}
+		.meta :global(.date-inline) {
+			display: inline;
+		}
+		.meta > :global(* + *)::before {
+			content: '·';
+			margin-right: 8px;
+			color: var(--c-text-muted);
+		}
+		.post-list h2 {
+			font-size: 17px;
+		}
+	}
+</style>

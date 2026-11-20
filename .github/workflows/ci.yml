@@ -1,0 +1,19 @@
+name: Build check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: withastro/action@v6
+        with:
+          node-version: "24"

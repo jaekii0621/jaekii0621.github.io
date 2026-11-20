@@ -1,0 +1,590 @@
+/*
+  전역 기준값과 기본 요소 스타일. 색, 글꼴, 간격 변수는 :root에 모여 있다.
+  다크 모드를 나중에 넣을 수 있게 색은 모두 변수로 쓴다.
+ */
+
+:root {
+	/* 글자 */
+	--c-text-strong: #0a0a0a;
+	--c-text: #1c1c1e;
+	--c-text-secondary: #3a3a3c;
+	--c-text-muted: #5a5a5c;
+	--c-text-disabled: #6e6e70;
+	/* 선과 면 */
+	--c-border: #e5e5e5;
+	--c-divider: #ededed;
+	--c-bg: #ffffff;
+	--c-surface: #f7f7f7;
+	--c-surface-2: #fafafa;
+	--c-surface-3: #f0f0f0;
+	/* 강조색: 장식에만 쓴다(글자·그래프·포커스에는 쓰지 않음) */
+	--c-accent: #00d4a4;
+	/* 카테고리 꼬리표, 각주 번호 */
+	--c-chip-bg: rgba(55, 114, 207, 0.12);
+	--c-chip-fg: #2a5fb0;
+	/* 코드 블록 */
+	--c-code-bg: #1c1c1e;
+	--c-code-divider: #2a2a2c;
+	--c-code-text: #f5f5f5;
+	--c-code-output: #d4d4d6;
+	--c-code-label: #b3b3b3;
+	--c-code-button-border: #3a3a3c;
+	/* 그림 */
+	--c-viz-blue: #2a5fb0;
+	--c-viz-orange: #c25e00;
+	--c-viz-orange-text: #a34f00;
+	--c-viz-target: #6e6e70;
+	--c-viz-line: #8e8e93;
+	--c-viz-axis: #b3b3b3;
+
+	/* 글꼴: --font-sans, --font-mono는 astro.config.mjs의 fonts 설정이 만든다 */
+	--font-body: var(--font-sans);
+	/* 코드 속 한글은 Geist Mono에 없으므로 Pretendard로 그린다 */
+	--font-code: var(--font-mono), var(--font-sans);
+
+	/* 폭 */
+	--container-max: 1200px;
+	--container-pad: 32px;
+}
+body {
+	font-family: var(--font-body);
+	margin: 0;
+	padding: 0;
+	text-align: left;
+	background: var(--c-bg);
+	overflow-wrap: break-word;
+	color: var(--c-text);
+	font-size: 17px;
+	line-height: 1.8;
+	word-break: keep-all;
+	-webkit-font-smoothing: antialiased;
+}
+main {
+	width: 720px;
+	max-width: calc(100% - 2 * var(--container-pad));
+	margin: auto;
+	padding: 48px var(--container-pad) 96px;
+}
+/* 화면별 바깥 틀. 3단계부터 상단 메뉴·하단·각 화면이 쓴다 */
+.container {
+	max-width: var(--container-max);
+	margin: 0 auto;
+	padding: 0 var(--container-pad);
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0 0 0.5rem 0;
+	color: var(--c-text-strong);
+	font-weight: 600;
+	line-height: 1.3;
+}
+h1 {
+	font-size: 40px;
+	line-height: 1.25;
+	letter-spacing: -1px;
+}
+h2 {
+	font-size: 28px;
+	line-height: 1.35;
+	letter-spacing: -0.5px;
+}
+h3 {
+	font-size: 21px;
+	line-height: 1.4;
+}
+h4 {
+	font-size: 18px;
+}
+h5,
+h6 {
+	font-size: 17px;
+}
+strong,
+b {
+	font-weight: 600;
+	color: var(--c-text-strong);
+}
+a {
+	color: var(--c-text-strong);
+}
+p {
+	margin: 0 0 1em 0;
+}
+
+/* ---------- 본문(.prose) ---------- */
+.prose p {
+	margin-bottom: 1.5em;
+}
+/* 표, 코드 블록, 목록 뒤에 제목이 바로 붙지 않도록 제목 위와 블록 아래에 여백을 둔다 */
+.prose h2 {
+	margin-top: 2.4em;
+	margin-bottom: 0.6em;
+}
+.prose h3 {
+	margin-top: 1.8em;
+	margin-bottom: 0.5em;
+}
+.prose a {
+	color: var(--c-text-strong);
+	text-decoration-line: underline;
+	text-decoration-color: var(--c-accent);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 3px;
+}
+.prose a:hover {
+	text-decoration-color: var(--c-text-strong);
+}
+/* 외부 링크 ↗ 아이콘(rehype-external-links가 붙임) */
+a .external-icon {
+	display: inline-block;
+	width: 0.75em;
+	height: 0.75em;
+	margin-left: 0.15em;
+	vertical-align: 0.35em;
+}
+.prose ul,
+.prose ol {
+	margin: 0 0 1.5em 0;
+	padding-left: 22px;
+}
+.prose li + li {
+	margin-top: 6px;
+}
+.prose li > ul,
+.prose li > ol {
+	margin: 6px 0 0 0;
+}
+.prose li::marker {
+	color: var(--c-text-muted);
+}
+.prose > pre {
+	margin: 1em 0 1.5em 0;
+}
+
+/* 표: rehype-table-wrap이 감싼 상자 안에서만 가로로 밀린다 */
+.table-wrap {
+	margin: 0 0 1.5em 0;
+	border: 1px solid var(--c-border);
+	border-radius: 8px;
+	overflow-x: auto;
+}
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 15px;
+	line-height: 1.6;
+}
+th,
+td {
+	padding: 10px 14px;
+	vertical-align: top;
+	text-align: left;
+	border-bottom: 1px solid var(--c-divider);
+}
+tr:last-child > td {
+	border-bottom: none;
+}
+th {
+	background-color: var(--c-surface-2);
+	color: var(--c-text-muted);
+	font-size: 13px;
+	font-weight: 600;
+	border-bottom-color: var(--c-border);
+}
+/* 상자로 감싸지 않은 표(컴포넌트 안 등) */
+table:not(.table-wrap > table) th,
+table:not(.table-wrap > table) td {
+	border: 1px solid var(--c-border);
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+	border-radius: 8px;
+}
+
+/* 인라인 코드 */
+code {
+	font-family: var(--font-code);
+	font-size: 0.82em;
+	font-weight: 500;
+	padding: 1px 5px;
+	background-color: var(--c-surface);
+	border: 1px solid var(--c-border);
+	border-radius: 4px;
+	color: var(--c-text-strong);
+}
+/* 코드 블록: codeBlockTransformer가 figure.code-block > .code-head + pre로 감싼다 */
+.code-block {
+	margin: 0.5em 0 1.5em;
+	overflow: hidden;
+	border-radius: 8px;
+	background: var(--c-code-bg);
+}
+.code-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 40px;
+	box-sizing: border-box;
+	padding: 4px 8px 4px 16px;
+	border-bottom: 1px solid var(--c-code-divider);
+	font-size: 13px;
+	color: var(--c-code-label);
+}
+.copy-btn {
+	padding: 4px 10px;
+	border: 1px solid var(--c-code-button-border);
+	border-radius: 6px;
+	background: transparent;
+	font-family: inherit;
+	font-size: 13px;
+	color: var(--c-code-label);
+	cursor: pointer;
+}
+.copy-btn:hover {
+	color: var(--c-code-text);
+	border-color: var(--c-code-label);
+}
+.code-block pre {
+	margin: 0;
+	border-radius: 0;
+}
+.code-output pre {
+	background: var(--c-code-bg);
+	color: var(--c-code-output);
+}
+/* 식 블록(```txt): 밝은 상자, 고정폭 15px */
+.code-formula {
+	border: 1px solid var(--c-divider);
+	background: var(--c-surface-2);
+}
+.code-formula .code-head {
+	border-bottom-color: var(--c-divider);
+	color: var(--c-text-muted);
+	font-weight: 600;
+}
+.code-formula pre {
+	background: transparent;
+	color: var(--c-text);
+	font-size: 15px;
+}
+pre {
+	padding: 16px 20px;
+	border-radius: 8px;
+	font-family: var(--font-code);
+	font-size: 14px;
+	line-height: 1.6;
+	overflow-x: auto;
+}
+pre > code {
+	all: unset;
+	font-family: inherit;
+}
+@media (min-width: 721px) {
+	:not(pre) > code {
+		white-space: nowrap;
+	}
+}
+
+/* 인용문 상자(calloutBoxes 플러그인): 핵심 문장, 용어·체크·주의 */
+.callout {
+	margin: 0.5em 0 1.5em;
+	border-radius: 12px;
+}
+.callout-body > :first-child {
+	margin-top: 0;
+}
+.callout-body > :last-child,
+.prose .callout-body > p:last-child {
+	margin-bottom: 0;
+}
+.prose .callout-body p {
+	margin: 0 0 0.6em;
+}
+.callout-key {
+	display: flex;
+	gap: 12px;
+	padding: 16px 20px;
+	background: var(--c-surface);
+	font-size: 16px;
+	line-height: 1.75;
+}
+.callout-dot {
+	flex: 0 0 8px;
+	height: 8px;
+	margin-top: 10px;
+	border-radius: 9999px;
+	background: var(--c-accent);
+}
+.callout-term,
+.callout-check,
+.callout-warning {
+	padding: 14px 20px 16px;
+	border: 1px solid var(--c-border);
+	font-size: 16px;
+	line-height: 1.75;
+}
+.prose .callout-label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 6px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.5;
+	color: var(--c-text-muted);
+}
+.callout-label svg {
+	flex-shrink: 0;
+	width: 14px;
+	height: 14px;
+}
+@media (max-width: 720px) {
+	.callout-key {
+		padding: 14px 16px;
+		font-size: 15px;
+	}
+	.callout-term,
+	.callout-check,
+	.callout-warning {
+		padding: 12px 16px 14px;
+		font-size: 15px;
+	}
+}
+/* 상자 규칙에 맞지 않는 인용문 */
+blockquote {
+	border-left: 3px solid var(--c-border);
+	padding: 0 0 0 20px;
+	margin: 0 0 2em 0;
+	color: var(--c-text-secondary);
+}
+.prose blockquote p {
+	margin: 0 0 0.5em 0;
+}
+blockquote ul {
+	margin: 0;
+}
+
+/* 각주: 본문 번호는 파랑 고정폭, 글 끝은 구분선 아래 번호 목록 */
+sup:has(> a[data-footnote-ref]) {
+	line-height: 0;
+}
+a[data-footnote-ref] {
+	font-family: var(--font-mono);
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--c-chip-fg);
+	text-decoration: none;
+}
+a[data-footnote-ref]::before {
+	content: '[';
+}
+a[data-footnote-ref]::after {
+	content: ']';
+}
+.prose a[data-footnote-ref] {
+	text-decoration: none;
+}
+section.footnotes {
+	margin-top: 3em;
+	padding-top: 1.5em;
+	border-top: 1px solid var(--c-divider);
+	font-size: 14px;
+	line-height: 1.7;
+	color: var(--c-text-secondary);
+}
+section.footnotes ol {
+	padding-left: 22px;
+}
+section.footnotes li::marker {
+	font-family: var(--font-mono);
+	font-size: 12px;
+}
+section.footnotes p {
+	margin: 0;
+}
+.prose a[data-footnote-backref] {
+	margin-left: 0.3em;
+	text-decoration: none;
+}
+
+hr {
+	border: none;
+	border-top: 1px solid var(--c-divider);
+}
+
+/* ---------- 공용 요소 ---------- */
+
+/* 날짜·글 수·버전처럼 "값"인 글자 */
+.mono {
+	font-family: var(--font-mono);
+}
+
+/* 칸 라벨("시리즈", "이 글의 목차", "최근 글") */
+.eyebrow {
+	margin: 0;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.5px;
+	color: var(--c-text-muted);
+}
+
+/* 알약 버튼: 기본(검정)과 보조(흰 바탕 + 테두리) */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	box-sizing: border-box;
+	min-height: 44px;
+	padding: 0 22px;
+	border: 1px solid transparent;
+	border-radius: 9999px;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1.2;
+	text-decoration: none;
+	cursor: pointer;
+}
+.btn-primary {
+	background: var(--c-text-strong);
+	color: var(--c-bg);
+}
+.btn-primary:hover {
+	background: var(--c-text-secondary);
+	color: var(--c-bg);
+}
+.btn-secondary {
+	background: var(--c-bg);
+	border-color: var(--c-border);
+	color: var(--c-text-strong);
+}
+.btn-secondary:hover {
+	background: var(--c-surface);
+	color: var(--c-text-strong);
+}
+.btn-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+@media (max-width: 720px) {
+	/* 버튼 두 개가 나란히 있으면 반반 폭으로 */
+	.btn-row > .btn {
+		flex: 1 1 140px;
+		min-height: 48px;
+	}
+}
+
+/* 1단계 탭: 블로그 상위 카테고리, 스크랩 태그. 흰 알약 + 테두리, 선택은 검정.
+   링크면 aria-current="page", 버튼이면 aria-pressed="true"로 선택을 나타낸다 */
+.pill-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex: 0 0 auto;
+	box-sizing: border-box;
+	min-height: 44px;
+	padding: 0 16px;
+	border: 1px solid var(--c-border);
+	border-radius: 9999px;
+	background: var(--c-bg);
+	color: var(--c-text-secondary);
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.2;
+	white-space: nowrap;
+	text-decoration: none;
+	cursor: pointer;
+}
+.pill-tab:hover {
+	border-color: var(--c-text-muted);
+	color: var(--c-text-strong);
+}
+.pill-tab[aria-current='page'],
+.pill-tab[aria-pressed='true'] {
+	border-color: var(--c-text-strong);
+	background: var(--c-text-strong);
+	color: var(--c-bg);
+}
+/* 탭 옆 개수 */
+.tab-count {
+	display: inline-block;
+	min-width: 12px;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	text-align: center;
+	opacity: 0.75;
+}
+
+/* 카테고리 꼬리표 */
+.chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 8px;
+	border-radius: 6px;
+	background: var(--c-chip-bg);
+	color: var(--c-chip-fg);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.5;
+	white-space: nowrap;
+	text-decoration: none;
+}
+
+/* 키보드 이동에만 보이는 포커스 표시. 어두운 코드 블록 위에서도 보이게 흰 띠를 두른다 */
+:focus-visible {
+	outline: 2px solid var(--c-text-strong);
+	outline-offset: 2px;
+	box-shadow: 0 0 0 2px var(--c-bg);
+}
+
+@media (max-width: 720px) {
+	:root {
+		--container-pad: 20px;
+	}
+	body {
+		font-size: 16px;
+	}
+	main {
+		padding-top: 36px;
+		padding-bottom: 56px;
+	}
+	h1 {
+		font-size: 28px;
+		line-height: 1.3;
+		letter-spacing: -0.6px;
+	}
+	h2 {
+		font-size: 22px;
+		line-height: 1.4;
+		letter-spacing: -0.4px;
+	}
+	h3 {
+		font-size: 18px;
+	}
+	pre {
+		font-size: 13px;
+	}
+}
+
+.sr-only {
+	border: 0;
+	padding: 0;
+	margin: 0;
+	position: absolute !important;
+	height: 1px;
+	width: 1px;
+	overflow: hidden;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	/* 줄바꿈 없이 붙여 화면 읽기 프로그램이 단어를 붙여 읽지 않게 한다 */
+	white-space: nowrap;
+}
