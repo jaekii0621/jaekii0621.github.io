@@ -43,7 +43,16 @@ const series = await getAllSeries(allPosts);
 						))}
 					</h1>
 					<p class="lead">
-						{HOME_INTRO.lead || <span class="placeholder">블로그 소개 두세 문장: 누가, 무엇을, 왜 기록하는지</span>}
+						{HOME_INTRO.lead.some(Boolean) ? (
+							HOME_INTRO.lead.map((line, i) => (
+								<>
+									{i > 0 && <br />}
+									{line}
+								</>
+							))
+						) : (
+							<span class="placeholder">블로그 소개 두세 문장: 누가, 무엇을, 왜 기록하는지</span>
+						)}
 					</p>
 					<div class="btn-row">
 						<a class="btn btn-primary" href="/blog/">블로그 읽기</a>

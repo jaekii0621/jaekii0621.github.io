@@ -28,3 +28,6 @@ drafts/
 
 # blog source material (notebooks, logs) kept local
 raw/
+
+# original profile photo (contains GPS EXIF); src/assets/profile.jpg is the cleaned copy
+src/assets/KakaoTalk_20261119_142846313.jpg

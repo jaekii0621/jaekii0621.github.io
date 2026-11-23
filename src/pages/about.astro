@@ -1,6 +1,7 @@
 ---
 // 소개 페이지. 본문은 src/content/about.mdx에 마크다운으로 쓰고, 이 파일은 틀과 프로필 칸을 맡는다.
 // PC: 왼쪽 제목·본문 + 오른쪽 프로필 칸. 휴대폰: 제목 → 프로필 칸 → 본문.
+import { Image } from 'astro:assets';
 import BaseHead from '../components/BaseHead.astro';
 import CertBadge from '../components/CertBadge.astro';
 import Footer from '../components/Footer.astro';
@@ -20,13 +21,17 @@ import { Content, frontmatter } from '../content/about.mdx';
 		<main class="about container">
 			<div class="heading">
 				<h1>{frontmatter.title || <span class="placeholder">소개 페이지 제목 (예: 안녕하세요, ○○입니다)</span>}</h1>
-				<p class="tagline">{frontmatter.tagline || <span class="placeholder">나를 표현하는 한 문장</span>}</p>
+				{frontmatter.tagline && <p class="tagline">{frontmatter.tagline}</p>}
 			</div>
 
 			<aside class="profile" aria-label="프로필">
 				<div class="profile-card">
 					<div class="who">
-						<span class="initial" aria-hidden="true">{PROFILE.initial}</span>
+						{PROFILE.photo ? (
+							<Image class="initial photo" src={PROFILE.photo} alt="" width={192} />
+						) : (
+							<span class="initial" aria-hidden="true">{PROFILE.initial}</span>
+						)}
 						<span class="who-text">
 							<span class="name">{PROFILE.name || <span class="placeholder">이름</span>}</span>
 							<span class="role">{PROFILE.role || <span class="placeholder">한 줄 소개</span>}</span>
@@ -38,7 +43,10 @@ import { Content, frontmatter } from '../content/about.mdx';
 							PROFILE.summary.map((s) => (
 								<>
 									<dt>{s.term || <span class="placeholder">항목 (예: 경력)</span>}</dt>
-									<dd>{s.desc || <span class="placeholder">내용</span>}</dd>
+									<dd>
+										{s.desc || <span class="placeholder">내용</span>}
+										{s.note && <span class="note">{s.note}</span>}
+									</dd>
 								</>
 							))
 						}
@@ -185,6 +193,11 @@ import { Content, frontmatter } from '../content/about.mdx';
 		font-size: 18px;
 		font-weight: 600;
 	}
+	/* 프로필 사진: 같은 동그라미에 가운데를 잘라 채운다. 글자 아바타의 강조색 테두리는 쓰지 않는다. */
+	.photo {
+		object-fit: cover;
+		box-shadow: none;
+	}
 	.who-text {
 		display: flex;
 		flex-direction: column;
@@ -214,6 +227,11 @@ import { Content, frontmatter } from '../content/about.mdx';
 	.summary dd {
 		margin: 0;
 		color: var(--c-text);
+	}
+	/* 내용 뒤에 덧붙이는 보충 설명(예: 휴학중): 항목 이름과 같은 회색 */
+	.summary .note {
+		margin-left: 0.3em;
+		color: var(--c-text-muted);
 	}
 	.contacts {
 		display: flex;
